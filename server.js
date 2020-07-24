@@ -10,7 +10,7 @@ app.use(cors());
 // limit requests
 const limiter = rateLimit({
 	windowMs: 60 * 1000, // 1 minute
-	max: 20, // limit each IP to 100 requests per windowMs
+	max: 20, // limit each IP requests per windowMs
 	message: 'too many requests, try again in a minute',
 });
 
@@ -18,6 +18,8 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // configure cache
+// caches the response for faster loading, set to false if using pagination
+let USE_CACHE = true; 
 let cachedData;
 let cacheTime;
 
@@ -27,11 +29,11 @@ app.get('/', (req, res) => {
 	const BASE_URL = 'https://jobs.github.com/positions.json';
 	const params = req.query;
 	console.log(params);
-	// check for cached data
-	// if (cachedData && cacheTime > Date.now() - 1 * 60 * 1000){
-    //     console.log('sending cached content');
-    //     return res.send(cachedData);
-    // }
+    // check for cached data
+	if (USE_CACHE && cachedData && cacheTime > Date.now() - 1 * 60 * 1000){
+        console.log('sending cached content');
+        return res.send(cachedData);
+    }
 	axios
 		.get(BASE_URL, {
 			params: params,
